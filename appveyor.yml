@@ -9,7 +9,6 @@ environment:
   KITCHEN_YAML: .kitchen.appveyor.yml
 
   matrix:
-    - ruby_version: "Ruby 2.5.0-1 x64"
     - CHEF_VERSION: 13
 
 clone_folder: c:\projects\kitchen-machine
