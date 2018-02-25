@@ -22,3 +22,6 @@ The config file, `.chef/knife.rb` is a repository specific configuration file fo
 # Next Steps
 
 Read the README file in each of the subdirectories for more information about what goes in those directories.
+
+### cloud_dev
+[![Build status](https://ci.appveyor.com/api/projects/status/e4yrhbqn96grj5k0?svg=true)](https://ci.appveyor.com/project/HauptJ/win-dev-chef)
