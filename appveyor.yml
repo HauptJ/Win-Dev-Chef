@@ -7,29 +7,38 @@ environment:
   machine_pass: Pass@word1
   machine_port: 5985
   KITCHEN_YAML: .kitchen.appveyor.yml
-  SSL_CERT_FILE: c:\projects\kitchen-machine\certs.pem
 
   matrix:
     - ruby_version: "Ruby 2.5.0-1 x64"
+    - CHEF_VERSION: 13
 
 clone_folder: c:\projects\kitchen-machine
+
+# faster cloning apparently
 clone_depth: 1
+
 branches:
   only:
     - master
 
+# Install the latest nightly of ChefDK
 install:
-  - ps: gem install ffi -v 1.9.22
-  - ps: gem install chef
-  - ps: gem install test-kitchen
+  - ps: iex (irm https://omnitruck.chef.io/install.ps1); Install-Project -Project chefdk -channel current
+  - ps: 'Get-CimInstance win32_operatingsystem -Property Caption, OSArchitecture, Version | fl Caption, OSArchitecture, Version'
+  - ps: $PSVersionTable
+  - c:\opscode\chefdk\bin\chef.bat exec ruby --version
+  - ps: secedit /export /cfg $env:temp/export.cfg
+  - ps: ((get-content $env:temp/export.cfg) -replace ('PasswordComplexity = 1', 'PasswordComplexity = 0')) | Out-File $env:temp/export.cfg
+  - ps: ((get-content $env:temp/export.cfg) -replace ('MinimumPasswordLength = 8', 'MinimumPasswordLength = 0')) | Out-File $env:temp/export.cfg
+  - ps: secedit /configure /db $env:windir/security/new.sdb /cfg $env:temp/export.cfg /areas SECURITYPOLICY
   - ps: net user /add $env:machine_user $env:machine_pass
   - ps: net localgroup administrators $env:machine_user /add
-  - ps: $env:PATH="C:\Ruby$env:ruby_version\bin;$env:PATH"
-  - ps: gem install bundler --quiet --no-ri --no-rdoc
-  - ps: Invoke-WebRequest -Uri http://curl.haxx.se/ca/cacert.pem -OutFile c:\projects\kitchen-machine\certs.pem
 
 build_script:
-  - bundle install || bundle install || bundle install
+  - ps: c:\opscode\chefdk\bin\chef.bat shell-init powershell | iex; cmd /c c:\opscode\chefdk\bin\chef.bat --version
 
 test_script:
-  - bundle exec kitchen verify windows
+  - c:\opscode\chefdk\bin\cookstyle --version
+  - c:\opscode\chefdk\bin\chef.bat exec foodcritic --version
+  - c:\opscode\chefdk\bin\chef.bat exec delivery local all
+  - c:\opscode\chefdk\bin\chef.bat exec kitchen verify
