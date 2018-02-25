@@ -19,6 +19,8 @@ branches:
     - master
 
 install:
+  - ps: gem install ffi
+  - ps: gem install chef
   - ps: gem install test-kitchen
   - ps: net user /add $env:machine_user $env:machine_pass
   - ps: net localgroup administrators $env:machine_user /add
